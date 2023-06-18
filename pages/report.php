@@ -17,7 +17,6 @@ $header = array();
 $users = getUsers();
 $depts = getDepartments(true);
 $logs = array();
-$deptSummary = array();
 
 if ($type == "unclocked") {
     //$title = "Unclocked Users for " . date('Y/m/d', strtotime("-1 days"));
@@ -362,6 +361,88 @@ if ($type == "apps") {
     </tr>
     </tfoot>
 </table>
+
+<?php
+
+if ($type == "apps") {
+
+$deptCounts = [];
+
+foreach ($departments as $dept) {
+    if (!isset($deptCounts[$dept])) {
+        $deptCounts[$dept] = [];
+        $deptCounts[$dept]["count"] = 0;
+        $deptCounts[$dept]["hours"] = 0;
+    }
+}
+
+// I know this looks like hell, but it's a fix.
+
+foreach ($dataArr as $page) {
+    foreach ($page->data as $app) {
+        foreach ($app->departments as $dept) {
+            if (array_key_exists($dept->name, $deptCounts)) {
+                if (in_array("assignment", $dept->states)) {
+                    $deptCounts[$dept->name]["count"]++;
+                    foreach ($app->options as $opt) {
+                        if ($opt->name == "Available Hours") {
+                            $deptCounts[$dept->name]["hours"] += (int) $opt->value;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+?>
+
+<div class="container" style="top: 5em;">
+    <div class="card">
+        <div class="row">
+            <div class="col-sm">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-header cadHeader">
+                            <div>Dept Count</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="card-header cadBody">
+                                    <table id="asdasd" class="table table table-striped table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">Dept</th>
+                                            <th scope="col">Count</th>
+                                            <th scope="col">Hours</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="uRow">
+                                        <?php
+
+                                        foreach ($deptCounts as $dept => $val) {
+                                            echo "<tr>";
+                                            echo "<th>" . $dept . "</th>";
+                                            echo "<td>" . $val["count"] . "</td>";
+                                            echo "<td>" . $val["hours"] . "</td>";
+                                            echo "</tr>";
+                                        }
+
+                                        ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php } ?>
 
 <script>
     $(document).ready(function () {
